@@ -63,6 +63,8 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 
 public class PluginUtils {
+    public static final String KEY_PAGE_NUMBER = "pageNumber";
+    public static final String FUNCTION_GET_PAGE_CROP_BOX = "getPageCropBox";
 
     public static final String KEY_LICENSE_KEY = "licenseKey";
     public static final String KEY_DOCUMENT = "document";

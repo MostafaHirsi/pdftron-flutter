@@ -6,8 +6,13 @@ import android.view.View;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
+import com.pdftron.common.PDFNetException;
 import com.pdftron.pdftronflutter.helpers.PluginUtils;
 import com.pdftron.pdftronflutter.views.DocumentView;
+
+import org.json.JSONException;
+
+import java.util.Objects;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
@@ -28,9 +33,11 @@ import static com.pdftron.pdftronflutter.helpers.PluginUtils.EVENT_LEADING_NAV_B
 import static com.pdftron.pdftronflutter.helpers.PluginUtils.EVENT_LONG_PRESS_MENU_PRESSED;
 import static com.pdftron.pdftronflutter.helpers.PluginUtils.EVENT_PAGE_CHANGED;
 import static com.pdftron.pdftronflutter.helpers.PluginUtils.EVENT_ZOOM_CHANGED;
+import static com.pdftron.pdftronflutter.helpers.PluginUtils.FUNCTION_GET_PAGE_CROP_BOX;
 import static com.pdftron.pdftronflutter.helpers.PluginUtils.FUNCTION_OPEN_DOCUMENT;
 import static com.pdftron.pdftronflutter.helpers.PluginUtils.FUNCTION_SET_LEADING_NAV_BUTTON_ICON;
 import static com.pdftron.pdftronflutter.helpers.PluginUtils.KEY_LEADING_NAV_BUTTON_ICON;
+import static com.pdftron.pdftronflutter.helpers.PluginUtils.KEY_PAGE_NUMBER;
 
 public class FlutterDocumentView implements PlatformView, MethodChannel.MethodCallHandler {
 
@@ -229,6 +236,23 @@ public class FlutterDocumentView implements PlatformView, MethodChannel.MethodCa
     @Override
     public void onMethodCall(MethodCall call, MethodChannel.Result result) {
         switch (call.method) {
+            case FUNCTION_GET_PAGE_CROP_BOX: {
+                Objects.requireNonNull(documentView);
+                Objects.requireNonNull(documentView.getPdfDoc());
+                Integer pageNumber = call.argument(KEY_PAGE_NUMBER);
+                if (pageNumber != null) {
+                    try {
+                        documentView.getPageCropBox(pageNumber, result);
+                    } catch (JSONException ex) {
+                        ex.printStackTrace();
+                        result.error(Integer.toString(ex.hashCode()), "JSONException Error: " + ex, null);
+                    } catch (PDFNetException ex) {
+                        ex.printStackTrace();
+                        result.error(Long.toString(ex.getErrorCode()), "PDFTronException Error: " + ex, null);
+                    }
+                }
+                break;
+            }
             case FUNCTION_OPEN_DOCUMENT:
                 String document = call.argument("document");
                 String password = call.argument("password");

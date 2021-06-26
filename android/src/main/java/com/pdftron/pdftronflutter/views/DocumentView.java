@@ -9,9 +9,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentManager;
 
+import com.pdftron.common.PDFNetException;
 import com.pdftron.pdf.Annot;
 import com.pdftron.pdf.PDFDoc;
 import com.pdftron.pdf.PDFViewCtrl;
+import com.pdftron.pdf.Rect;
 import com.pdftron.pdf.config.PDFViewCtrlConfig;
 import com.pdftron.pdf.config.ToolManagerBuilder;
 import com.pdftron.pdf.config.ViewerBuilder2;
@@ -25,6 +27,9 @@ import com.pdftron.pdftronflutter.helpers.PluginUtils;
 import com.pdftron.pdftronflutter.helpers.ViewerComponent;
 import com.pdftron.pdftronflutter.helpers.ViewerImpl;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +37,12 @@ import java.util.HashMap;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel;
 
+import static com.pdftron.pdftronflutter.helpers.PluginUtils.KEY_HEIGHT;
+import static com.pdftron.pdftronflutter.helpers.PluginUtils.KEY_WIDTH;
+import static com.pdftron.pdftronflutter.helpers.PluginUtils.KEY_X1;
+import static com.pdftron.pdftronflutter.helpers.PluginUtils.KEY_X2;
+import static com.pdftron.pdftronflutter.helpers.PluginUtils.KEY_Y1;
+import static com.pdftron.pdftronflutter.helpers.PluginUtils.KEY_Y2;
 import static com.pdftron.pdftronflutter.helpers.PluginUtils.handleDocumentLoaded;
 import static com.pdftron.pdftronflutter.helpers.PluginUtils.handleLeadingNavButtonPressed;
 import static com.pdftron.pdftronflutter.helpers.PluginUtils.handleOnDetach;
@@ -360,6 +371,24 @@ public class DocumentView extends com.pdftron.pdf.controls.DocumentView2 impleme
 
     public void setSelectedAnnots(HashMap<Annot, Integer> selectedAnnots) {
         mSelectedAnnots = selectedAnnots;
+    }
+
+    public void getPageCropBox(int pageNumber, MethodChannel.Result result) throws PDFNetException, JSONException {
+        JSONObject jsonObject = new JSONObject();
+        PDFDoc pdfDoc = getPdfDoc();
+        if (pdfDoc == null) {
+            result.error("InvalidState", "Activity not attached", null);
+            return;
+        }
+
+        Rect rect = pdfDoc.getPage(pageNumber).getCropBox();
+        jsonObject.put(KEY_X1, rect.getX1());
+        jsonObject.put(KEY_Y1, rect.getY1());
+        jsonObject.put(KEY_X2, rect.getX2());
+        jsonObject.put(KEY_Y2, rect.getY2());
+        jsonObject.put(KEY_WIDTH, rect.getWidth());
+        jsonObject.put(KEY_HEIGHT, rect.getHeight());
+        result.success(jsonObject.toString());
     }
 
     @Override
